@@ -5,6 +5,9 @@ from csv import writer
 from telegram import Update
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
 import config as cfg
+import requests
+from random import choices
+import json
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -32,6 +35,18 @@ class Csv_Handle:
             writer_object.writerow(list_data)
             f_object.close()
             
+def fact():
+    limit = 1 
+    api_url = api_url = 'https://api.api-ninjas.com/v1/facts?limit={}'.format(limit)
+    response = requests.get(api_url, headers={'X-Api-Key': cfg.NINJA_KEY})
+    if response.status_code == requests.codes.ok:
+        json_answer = json.loads(response.text)
+        answer = json_answer[0]
+    else:
+        print("Error:", response.status_code, response.text)
+        answer = "you suck"
+    return answer["fact"]
+            
 def blaaa(s):
     ret = ""
     i = True  # capitalize
@@ -58,8 +73,16 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ########################
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    csv_data = Csv_Handle()
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=random.choice(csv_data.get_answer()))
+    answer = ''
+    a = [0,1]
+    dec = choices(a, [0.85, 0.15])
+    if dec[0] == 1:
+        answer = fact()
+    else:
+        csv_data = Csv_Handle()
+        ans = csv_data.get_answer()
+        answer = ans[0]
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
 #########################
 
 # async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
